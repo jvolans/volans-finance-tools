@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Osobní inflace – Volans</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <div class="header">Kalkulačka: Osobní inflace</div>
+  <div class="container">
+    <div class="card">
+      <h1>Váš koš položek</h1>
+      <p class="small">Zadej položky a jejich váhu (podíl rozpočtu), základní cenu a dnešní cenu.</p>
+      <div id="items"></div>
+      <button class="btn" id="add">Přidat položku</button>
+      <hr>
+      <button class="btn" id="calc">Spočítat</button>
+    </div>
+    <div class="card">
+      <h1>Výsledek</h1>
+      <div id="result" class="result">Zatím nic vypočteno.</div>
+      <p class="small">Osobní inflace = Σ(w · P_dnes) / Σ(w · P_základ) − 1</p>
+    </div>
+  </div>
+  <script>
+    const itemsDiv = document.getElementById('items')
+    function row(w=0.2, base=100, now=110, name='Položka'){
+      const wrap = document.createElement('div'); wrap.className='row'; wrap.style.marginBottom='12px'
+      wrap.innerHTML = `
+        <div><label>Název</label><input type="text" value="${name}"></div>
+        <div><label>Váha (0–1)</label><input type="number" step="0.01" min="0" max="1" value="${w}"></div>
+        <div><label>Cena základ (Kč)</label><input type="number" step="0.01" min="0" value="${base}"></div>
+        <div><label>Cena dnes (Kč)</label><input type="number" step="0.01" min="0" value="${now}"></div>
+      `
+      itemsDiv.appendChild(wrap)
+    }
+    document.getElementById('add').addEventListener('click',()=>row())
+    // seed with two items
+    row(0.4, 100, 115, 'Potraviny')
+    row(0.3, 100, 120, 'Energie')
+    document.getElementById('calc').addEventListener('click',()=>{
+      const rows = [...itemsDiv.querySelectorAll('.row')]
+      let num=0, den=0
+      rows.forEach(r=>{
+        const [nameEl,wEl,baseEl,nowEl] = r.querySelectorAll('input')
+        const w=parseFloat(wEl.value)||0
+        const base=parseFloat(baseEl.value)||0
+        const now=parseFloat(nowEl.value)||0
+        if(base>0 && w>=0){ num += w*now; den += w*base }
+      })
+      if(den<=0){ document.getElementById('result').textContent='Zadej alespoň jednu položku se základní cenou > 0.'; return }
+      const infl = num/den - 1
+      document.getElementById('result').textContent = `Osobní inflace: ${(infl*100).toFixed(1)} %`;
+    })
+  </script>
+</body>
+</html>

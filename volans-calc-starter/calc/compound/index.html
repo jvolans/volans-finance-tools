@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Složené úročení – Volans</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <div class="header">Kalkulačka: Složené úročení</div>
+  <div class="container">
+    <div class="card">
+      <h1>Vstupy</h1>
+      <div class="row">
+        <div>
+          <label>Počáteční částka (Kč)</label>
+          <input id="pv" type="number" value="100000" min="0" step="1000">
+        </div>
+        <div>
+          <label>Měsíční vklad (Kč)</label>
+          <input id="pmt" type="number" value="2000" min="0" step="100">
+        </div>
+        <div>
+          <label>Roční výnos (%)</label>
+          <input id="apy" type="range" min="0" max="20" step="0.1" value="7">
+          <div class="small"><span id="apyVal">7</span> % p.a.</div>
+        </div>
+        <div>
+          <label>Doba (roky)</label>
+          <input id="years" type="range" min="1" max="40" step="1" value="20">
+          <div class="small"><span id="yearsVal">20</span> let</div>
+        </div>
+        <div>
+          <label>Inflace (%)</label>
+          <input id="infl" type="range" min="0" max="15" step="0.1" value="3">
+          <div class="small"><span id="inflVal">3</span> % p.a.</div>
+        </div>
+      </div>
+      <hr>
+      <button class="btn" id="btn">Spočítat</button>
+    </div>
+    <div class="card">
+      <h1>Výsledek</h1>
+      <div id="result" class="result">Zadej vstupy a klikni na „Spočítat“.</div>
+      <p class="small">Vzorec: FV = PV·(1+r/12)^(12·t) + PMT·(((1+r/12)^(12·t)-1)/(r/12)). Reálná hodnota děleno (1+inflace)^t.</p>
+    </div>
+  </div>
+  <script type="module">
+    import { formatCZK } from '/assets/js/utils.js'
+    const apyEl = document.getElementById('apy')
+    const yearsEl = document.getElementById('years')
+    const inflEl = document.getElementById('infl')
+    const bind = (el, spanId)=>{const sp=document.getElementById(spanId);['input','change'].forEach(e=>el.addEventListener(e,()=>sp.textContent=el.value))}
+    bind(apyEl,'apyVal');bind(yearsEl,'yearsVal');bind(inflEl,'inflVal')
+    document.getElementById('btn').addEventListener('click',()=>{
+      const pv = parseFloat(document.getElementById('pv').value)||0
+      const pmt = parseFloat(document.getElementById('pmt').value)||0
+      const r = (parseFloat(apyEl.value)||0)/100/12
+      const tYears = parseInt(yearsEl.value)||0
+      const n = tYears*12
+      const infl = (parseFloat(inflEl.value)||0)/100
+      const fvLump = pv*Math.pow(1+r,n)
+      const fvPmt = pmt*((Math.pow(1+r,n)-1)/r)
+      const fv = fvLump + fvPmt
+      const realFV = fv / Math.pow(1+infl, tYears)
+      document.getElementById('result').textContent = `Budoucí hodnota: ${formatCZK(fv)} | Reálně (po inflaci): ${formatCZK(realFV)}`
+    })
+  </script>
+</body>
+</html>

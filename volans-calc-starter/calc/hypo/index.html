@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kolik mi banka půjčí – Volans</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <div class="header">Kalkulačka: Kolik mi banka půjčí?</div>
+  <div class="container">
+    <div class="card">
+      <h1>Vstupy</h1>
+      <div class="row">
+        <div>
+          <label>Čistý měsíční příjem domácnosti (Kč)</label>
+          <input id="income" type="number" value="40000" min="0" step="100">
+        </div>
+        <div>
+          <label>Měsíční splátky závazků (Kč)</label>
+          <input id="debts" type="number" value="5000" min="0" step="100">
+        </div>
+        <div>
+          <label>Úroková sazba (%)</label>
+          <input id="rate" type="range" min="2" max="8" step="0.1" value="5">
+          <div class="small"><span id="rateVal">5</span> % p.a.</div>
+        </div>
+        <div>
+          <label>Doba splatnosti (roky)</label>
+          <input id="term" type="range" min="5" max="35" step="1" value="25">
+          <div class="small"><span id="termVal">25</span> let</div>
+        </div>
+      </div>
+      <hr>
+      <button class="btn" id="btn">Spočítat</button>
+    </div>
+
+    <div class="card">
+      <h1>Výsledek</h1>
+      <div id="result" class="result">Zadej vstupy a klikni na „Spočítat“.</div>
+      <p class="small">Model počítá s limitem DSTI ≈ 45 % (nastavitelné v placené verzi). Skutečné podmínky závisí na bance a bonitě.</p>
+    </div>
+  </div>
+  <script type="module">
+    import { formatCZK } from '/assets/js/utils.js'
+    const rateEl = document.getElementById('rate')
+    const termEl = document.getElementById('term')
+    const rateVal = document.getElementById('rateVal')
+    const termVal = document.getElementById('termVal')
+    ;['input','change'].forEach(e=>{
+      rateEl.addEventListener(e,()=>rateVal.textContent=rateEl.value)
+      termEl.addEventListener(e,()=>termVal.textContent=termEl.value)
+    })
+    document.getElementById('btn').addEventListener('click',()=>{
+      const income = parseFloat(document.getElementById('income').value)||0
+      const debts = parseFloat(document.getElementById('debts').value)||0
+      const r = (parseFloat(rateEl.value)||0)/100/12
+      const n = (parseInt(termEl.value)||0)*12
+      const maxDSTI = 0.45
+      const maxPay = Math.max(income*maxDSTI - debts, 0)
+      if (maxPay<=0 || r<=0 || n<=0){
+        document.getElementById('result').textContent = 'Při zadaných údajích vychází max. splátka 0 Kč.'
+        return
+      }
+      const loan = maxPay * ((1 - Math.pow(1+r,-n)) / r)
+      document.getElementById('result').textContent = `Odhadovaný maximální úvěr: ${formatCZK(loan)} | Max. splátka: ${formatCZK(maxPay)}`
+    })
+  </script>
+</body>
+</html>
